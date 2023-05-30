@@ -19,17 +19,20 @@ public class BookingCRUDTest extends TestBase {
     static String additionalneeds="Breakfast";
     static String id;
     public static String token;
+    public static String username="admin";
+    public static String password="password123";
     @Test
     public void test001(){
         AuthorizationPojo authorizationPojo = new AuthorizationPojo();
-        authorizationPojo.setUsername("admin");
-        authorizationPojo.setPassword("password123");
+        authorizationPojo.setUsername(username);
+        authorizationPojo.setPassword(password);
 
         ValidatableResponse response = given()
                 .header("Content-Type", "application/json")
+                .header("Connection", "keep-alive")
                 .when()
                 .body(authorizationPojo)
-                .post("https://restful-booker.herokuapp.com/auth")
+                .post("/auth")
                 .then().log().body().statusCode(200);
         token = response.extract().path("token");
     }
@@ -49,20 +52,22 @@ public class BookingCRUDTest extends TestBase {
 
         ValidatableResponse response = given()
                 .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
+                .header("Connection", "keep-alive")
                 .header("Cookie", "token="+token)
+                .auth().preemptive().basic("username", "password")
                 .when()
                 .body(bookingPojo)
-                .post()
+                .post("/booking")
                 .then().log().body().statusCode(200);
         id=response.extract().path("bookingid");
     }
     @Test
     public void test003(){
         String bId=given()
+                .header("Connection", "keep-alive")
                 .pathParams("id",id)
                 .when()
-                .get("/{id}")
+                .get("/booking/{id}")
                 .then().statusCode(200)
                 .extract()
                 .path("bookingid");
@@ -84,33 +89,36 @@ public class BookingCRUDTest extends TestBase {
 
         Response response= given()
                 .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
+                .header("Connection", "keep-alive")
                 .header("Cookie", "token="+token)
+                .header("Authorization", "Basic YWRtaW46cGFzc3dvcmQxMjM=")
                 .pathParams("id", id)
                 .when()
                 .body(bookingPojo)
-                .put("/{id}");
+                .put("/booking/{id}");
         response.then().log().body().statusCode(200);
     }
     @Test
     public void test005(){
         given()
                 .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
+                .header("Connection", "keep-alive")
                 .header("Cookie", "token="+token)
+                .header("Authorization", "Basic YWRtaW46cGFzc3dvcmQxMjM=")
                 .pathParam("id", id)
                 .when()
-                .delete("/{id}")
+                .delete("/booking/{id}")
                 .then()
                 .statusCode(201);
 
         given()
                 .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
+                .header("Connection", "keep-alive")
                 .header("Cookie", "token="+token)
+                .header("Authorization", "Basic YWRtaW46cGFzc3dvcmQxMjM=")
                 .pathParam("id", id)
                 .when()
-                .get("/{id}")
+                .get("/booking/{id}")
                 .then().statusCode(404);
     }
 }
